@@ -1,26 +1,21 @@
+using System.Globalization;
 using System.Text;
-using TaskTracker.Core.Reporting;
-using TaskTracker.Core.Requests;
+using TaskTracker.Core.Abstractions;
+using TaskTracker.Core.Domain;
+using TaskTracker.Core.Pricing;
+using TaskTracker.Core.Services;
+using TaskTracker.Core.Storage;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-TotalRequest request = BuildRequestFromInput();
-TotalResult result = RequestTotalCalculator.Calculate(request);
-string report = RequestReport.TextOf(request, result);
-new RequestReportPrinter(Console.Out).Print(report);
+// Композиційний корінь: єдине місце, де створюються конкретні реалізації.
+var repository = new InMemoryTaskRepository();
+IPricingPolicy pricing = new DiscountPricingPolicy(0.05m);
+var service = new WorkTaskService(repository, pricing);
 
-static TotalRequest BuildRequestFromInput()
-{
-    return new TotalRequest(
-        RequestId: 1,
-        Client: new ClientInfo("Іваненко", "i@ex.com", IsRegular: true),
-        Lines: new List<StageLine>
-        {
-            new() { StageCode = "ST-1", Hours = 12, HourlyRate = 100m },
-            new() { StageCode = "ST-2", Hours = 1, HourlyRate = 250m },
-        },
-        CreatedAt: new DateOnly(2026, 3, 10),
-        CouponCode: null,
-        Status: RequestStatus.New,
-        TravelFee: 60m);
-}
+var task = new WorkTask(1, "CRM", 10, DateOnly.FromDateTime(DateTime.Today));
+task.Start();
+task.AddLog(new WorkLog("DEV", 2m, 250m));
+service.Register(task);
+
+Console.WriteLine("Сума: " + service.CostOf(task).ToString("0.00", CultureInfo.InvariantCulture));
