@@ -5,16 +5,22 @@ public sealed class WorkTask
 {
     private readonly List<WorkLog> _logs = new();
 
+    /// <summary>Ідентифікатор завдання.</summary>
     public int Id { get; init; }
 
+    /// <summary>Код проєкту, до якого належить завдання.</summary>
     public string ProjectCode { get; init; } = string.Empty;
 
+    /// <summary>Ідентифікатор виконавця.</summary>
     public int AssigneeId { get; init; }
 
+    /// <summary>Поточний стан завдання.</summary>
     public WorkTaskStatus Status { get; set; } = WorkTaskStatus.New;
 
+    /// <summary>Дата й час створення завдання.</summary>
     public DateTimeOffset CreatedAt { get; init; }
 
+    /// <summary>Записи витраченого часу.</summary>
     public IReadOnlyList<WorkLog> Logs => _logs;
 
     /// <summary>Додає запис часу до завдання.</summary>
