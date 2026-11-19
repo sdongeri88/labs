@@ -3,12 +3,12 @@ using TaskTracker.Core.Domain;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-var z = new zayavka("R-1001", "Іваненко");
-z.Add("ST-1", 3, 250m);
-z.Add("ST-2", 12, 90m);
+var request = new WorkRequest("R-1001", "Іваненко");
+request.AddStage("ST-1", 3, 250m);
+request.AddStage("ST-2", 12, 90m);
 
-Console.WriteLine(z.ProcessData(false));
-Console.WriteLine(z.ProcessData(true));
-Console.WriteLine(z.Ck());
-Console.WriteLine(z.Chg(1));
-Console.Write(z.Rep());
+Console.WriteLine(request.CalculateCost(false));
+Console.WriteLine(request.CalculateCost(true));
+Console.WriteLine(request.IsValid());
+Console.WriteLine(request.TryChangeStatus(1));
+Console.Write(request.BuildReport());
