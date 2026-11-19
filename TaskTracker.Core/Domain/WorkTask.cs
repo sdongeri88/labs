@@ -18,9 +18,11 @@ public sealed class WorkTask
     public IReadOnlyList<WorkLog> Logs => _logs;
 
     /// <summary>Додає запис часу до завдання.</summary>
+    /// <param name="log">Запис витраченого часу.</param>
     public void AddLog(WorkLog log) => _logs.Add(log);
 
     /// <summary>Обчислює сумарну кількість витрачених годин.</summary>
+    /// <returns>Сума годин усіх записів часу.</returns>
     public decimal TotalHours()
     {
         decimal sum = 0m;
@@ -33,6 +35,7 @@ public sealed class WorkTask
     }
 
     /// <summary>Обчислює вартість завдання: сума годин × ставка по всіх записах.</summary>
+    /// <returns>Загальна вартість робіт за завданням.</returns>
     public decimal TotalCost()
     {
         decimal sum = 0m;
