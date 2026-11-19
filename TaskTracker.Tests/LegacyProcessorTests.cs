@@ -1,4 +1,3 @@
-using TaskTracker.Core.Legacy;
 using TaskTracker.Core.Requests;
 using Xunit;
 
@@ -14,12 +13,12 @@ public class LegacyProcessorTests
             new StageLine { StageCode = "ST-1", Hours = 12, HourlyRate = 100m },
             new StageLine { StageCode = "ST-2", Hours = 1, HourlyRate = 250m },
         };
-        decimal total = LegacyProcessor.Process(
+        decimal total = RequestTotalCalculator.Process(
             1, "Іваненко", "i@ex.com", true, lines,
-            new DateOnly(2026, 3, 10), "", "New", false,
-            60m, out string next);
+            new DateOnly(2026, 3, 10), string.Empty, RequestStatus.New, false,
+            60m, out RequestStatus next);
         Assert.Equal(1292.70m, total);
-        Assert.Equal("Approved", next);
+        Assert.Equal(RequestStatus.Approved, next);
     }
 
     [Fact]
@@ -29,12 +28,12 @@ public class LegacyProcessorTests
         {
             new StageLine { StageCode = "ST-1", Hours = 2, HourlyRate = 200m },
         };
-        decimal total = LegacyProcessor.Process(
+        decimal total = RequestTotalCalculator.Process(
             2, "Петренко", "p@ex.com", false, lines,
-            new DateOnly(2026, 3, 10), "SALE10", "Approved",
-            false, 60m, out string next);
+            new DateOnly(2026, 3, 10), "SALE10", RequestStatus.Approved,
+            false, 60m, out RequestStatus next);
         Assert.Equal(420m, total);
-        Assert.Equal("Completed", next);
+        Assert.Equal(RequestStatus.Completed, next);
     }
 
     [Fact]
