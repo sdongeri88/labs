@@ -1,3 +1,5 @@
+using TaskTracker.Core.Requests;
+
 namespace TaskTracker.Core.Legacy;
 
 public static class LegacyProcessor

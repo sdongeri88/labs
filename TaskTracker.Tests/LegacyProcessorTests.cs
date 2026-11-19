@@ -1,4 +1,5 @@
 using TaskTracker.Core.Legacy;
+using TaskTracker.Core.Requests;
 using Xunit;
 
 namespace TaskTracker.Tests;
@@ -37,13 +38,17 @@ public class LegacyProcessorTests
     }
 
     [Fact]
-    public void Process_NoLines_ReturnsMinusOne()
+    public void Calculate_NoLines_ThrowsArgument()
     {
-        decimal total = LegacyProcessor.Process(
-            3, "Коваль", "k@ex.com", false,
-            new List<StageLine>(),
-            new DateOnly(2026, 3, 10), "", "New", false,
-            60m, out string next);
-        Assert.Equal(-1m, total);
+        Assert.Throws<ArgumentException>(() =>
+            RequestGuards.EnsureLinesValid(new List<StageLine>()));
+    }
+
+    [Fact]
+    public void Calculate_ZeroHours_ThrowsRange()
+    {
+        StageLine line = new() { StageCode = "ST-1", Hours = 0, HourlyRate = 10m };
+        Assert.Throws<ArgumentOutOfRangeException>(
+            () => RequestGuards.EnsureLineValid(line));
     }
 }
