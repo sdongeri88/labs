@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace TaskTracker.Core.Domain;
 
 /// <summary>
@@ -100,8 +102,8 @@ public class WorkRequest
     {
         string[] stage = new string[3];
         stage[0] = stageCode;
-        stage[1] = hours.ToString();
-        stage[2] = hourlyRate.ToString();
+        stage[1] = hours.ToString(CultureInfo.CurrentCulture);
+        stage[2] = hourlyRate.ToString(CultureInfo.CurrentCulture);
         _stages.Add(stage);
     }
 
@@ -117,8 +119,8 @@ public class WorkRequest
         int stageCount = 0;
         for (int i = 0; i < _stages.Count; i++)
         {
-            int stageHours = int.Parse(_stages[i][1]);
-            decimal stageRate = decimal.Parse(_stages[i][2]);
+            int stageHours = int.Parse(_stages[i][1], CultureInfo.CurrentCulture);
+            decimal stageRate = decimal.Parse(_stages[i][2], CultureInfo.CurrentCulture);
             total += stageHours * stageRate;
             stageCount++;
         }
@@ -209,8 +211,8 @@ public class WorkRequest
         string report = string.Empty;
         for (int i = 0; i < _stages.Count; i++)
         {
-            int stageHours = int.Parse(_stages[i][1]);
-            decimal stageRate = decimal.Parse(_stages[i][2]);
+            int stageHours = int.Parse(_stages[i][1], CultureInfo.CurrentCulture);
+            decimal stageRate = decimal.Parse(_stages[i][2], CultureInfo.CurrentCulture);
             report = report + "Етап: " + _stages[i][0]
                 + "; годин: " + _stages[i][1]
                 + "; ставка: " + _stages[i][2]
