@@ -43,4 +43,15 @@ internal static class RequestGuards
             EnsureLineValid(line);
         }
     }
+
+    /// <summary>Перевіряє весь запит на розрахунок однією точкою входу.</summary>
+    /// <param name="request">Запит на розрахунок.</param>
+    public static void EnsureRequestValid(TotalRequest request)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Client);
+        EnsureHeaderValid(request.RequestId, request.Client.Name, request.Client.Email);
+        EnsureLinesValid(request.Lines);
+        ArgumentOutOfRangeException.ThrowIfNegative(request.TravelFee);
+    }
 }

@@ -3,58 +3,22 @@ namespace TaskTracker.Core.Requests;
 /// <summary>Розрахунок вартості заявки на виконання робіт.</summary>
 public static class RequestTotalCalculator
 {
-    /// <summary>Обчислює вартість заявки, змінює її стан і за потреби друкує звіт.</summary>
-    /// <param name="requestId">Номер заявки.</param>
-    /// <param name="clientName">Ім’я клієнта.</param>
-    /// <param name="clientEmail">Пошта клієнта.</param>
-    /// <param name="isRegular">Ознака постійного клієнта.</param>
-    /// <param name="lines">Етапи робіт.</param>
-    /// <param name="createdAt">Дата створення заявки.</param>
-    /// <param name="couponCode">Код купона або null.</param>
-    /// <param name="status">Поточний стан заявки.</param>
-    /// <param name="printToConsole">Чи друкувати звіт у консоль.</param>
-    /// <param name="travelFee">Плата за виїзд фахівця.</param>
-    /// <param name="newStatus">Новий стан заявки.</param>
-    /// <returns>Вартість до сплати.</returns>
-    public static decimal Process(
-        int requestId,
-        string clientName,
-        string clientEmail,
-        bool isRegular,
-        IReadOnlyList<StageLine> lines,
-        DateOnly createdAt,
-        string? couponCode,
-        RequestStatus status,
-        bool printToConsole,
-        decimal travelFee,
-        out RequestStatus newStatus)
+    /// <summary>Обчислює вартість заявки та її наступний стан.</summary>
+    /// <param name="request">Запит на розрахунок.</param>
+    /// <returns>Вартість до сплати та новий стан заявки.</returns>
+    public static TotalResult Calculate(TotalRequest request)
     {
-        RequestGuards.EnsureHeaderValid(requestId, clientName, clientEmail);
-        decimal total = SubtotalOf(lines);
-        total -= ClientDiscountOf(total, isRegular);
+        RequestGuards.EnsureRequestValid(request);
+        decimal total = SubtotalOf(request.Lines);
+        total -= ClientDiscountOf(total, request.Client.IsRegular);
         total -= VolumeDiscountOf(total);
-        total -= CouponDiscountOf(total, couponCode);
-        total -= WeekendDiscountOf(total, createdAt);
-        total += TravelFeeOf(total, travelFee);
-        total = status == RequestStatus.Cancelled
+        total -= CouponDiscountOf(total, request.CouponCode);
+        total -= WeekendDiscountOf(total, request.CreatedAt);
+        total += TravelFeeOf(total, request.TravelFee);
+        total = request.Status == RequestStatus.Cancelled
             ? 0m
             : Math.Round(Math.Max(total, 0m), 2);
-        newStatus = NextStatusOf(status, total);
-
-        if (printToConsole)
-        {
-            Console.WriteLine("Заявка № " + requestId);
-            Console.WriteLine("Клієнт: " + clientName);
-            foreach (StageLine line in lines)
-            {
-                Console.WriteLine(line.StageCode + " x " + line.Hours);
-            }
-
-            Console.WriteLine("Разом: " + total);
-            Console.WriteLine("Стан: " + newStatus);
-        }
-
-        return total;
+        return new TotalResult(total, NextStatusOf(request.Status, total));
     }
 
     /// <summary>Сума етапів із гуртовою знижкою на великі етапи.</summary>

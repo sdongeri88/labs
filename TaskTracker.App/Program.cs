@@ -1,14 +1,24 @@
 using System.Text;
-using TaskTracker.Core.Domain;
+using TaskTracker.Core.Requests;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-var request = new WorkRequest("R-1001", "Іваненко");
-request.AddStage("ST-1", 3, 250m);
-request.AddStage("ST-2", 12, 90m);
+TotalRequest request = BuildRequestFromInput();
+TotalResult result = RequestTotalCalculator.Calculate(request);
+Console.WriteLine(result.Total);
 
-Console.WriteLine(request.CalculateCost(false));
-Console.WriteLine(request.CalculateCost(true));
-Console.WriteLine(request.IsValid());
-Console.WriteLine(request.TryChangeStatus(WorkRequest.StatusInProgress));
-Console.Write(request.BuildReport());
+static TotalRequest BuildRequestFromInput()
+{
+    return new TotalRequest(
+        RequestId: 1,
+        Client: new ClientInfo("Іваненко", "i@ex.com", IsRegular: true),
+        Lines: new List<StageLine>
+        {
+            new() { StageCode = "ST-1", Hours = 12, HourlyRate = 100m },
+            new() { StageCode = "ST-2", Hours = 1, HourlyRate = 250m },
+        },
+        CreatedAt: new DateOnly(2026, 3, 10),
+        CouponCode: null,
+        Status: RequestStatus.New,
+        TravelFee: 60m);
+}
