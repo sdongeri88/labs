@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace TaskTracker.Core.Domain;
 
 /// <summary>
@@ -10,9 +6,46 @@ namespace TaskTracker.Core.Domain;
 /// </summary>
 public class WorkRequest
 {
-    private readonly List<string[]> _stages = new List<string[]>();
+    /// <summary>Стан «нова»: заявку створено, роботи не розпочато.</summary>
+    public const int StatusNew = 0;
 
-    // public string prim;   // примітка, поки не треба
+    /// <summary>Стан «в роботі».</summary>
+    public const int StatusInProgress = 1;
+
+    /// <summary>Стан «виконана».</summary>
+    public const int StatusDone = 2;
+
+    /// <summary>Стан «скасована».</summary>
+    public const int StatusCancelled = 3;
+
+    /// <summary>Ставка податку на додану вартість.</summary>
+    private const decimal VatRate = 0.2m;
+
+    /// <summary>Поріг суми для знижки постійному клієнту.</summary>
+    private const decimal RegularDiscountThreshold = 1000m;
+
+    /// <summary>Частка знижки постійному клієнту.</summary>
+    private const decimal RegularDiscountRate = 0.10m;
+
+    /// <summary>Поріг суми для знижки на велику заявку.</summary>
+    private const decimal LargeRequestThreshold = 5000m;
+
+    /// <summary>Частка знижки на велику заявку.</summary>
+    private const decimal LargeRequestDiscountRate = 0.15m;
+
+    /// <summary>Кількість етапів, після якої діє гуртова знижка.</summary>
+    private const int BulkStageCount = 10;
+
+    /// <summary>Сума гуртової знижки, грн.</summary>
+    private const decimal BulkDiscountAmount = 100m;
+
+    /// <summary>Межа кількості етапів у заявці (не включно).</summary>
+    private const int MaxStageCount = 100;
+
+    /// <summary>Найкоротше допустиме ім’я клієнта.</summary>
+    private const int MinClientNameLength = 3;
+
+    private readonly List<string[]> _stages = new List<string[]>();
 
     /// <summary>
     /// Створює нову заявку зі станом «нова» та поточною датою створення.
@@ -32,8 +65,8 @@ public class WorkRequest
     /// <summary>Ім’я або назва клієнта, що подав заявку.</summary>
     public string ClientName { get; private set; }
 
-    /// <summary>Поточний стан заявки.</summary>
-    public int Status { get; private set; } // 0-нова,1-в роботі,2-викон,3-скасов
+    /// <summary>Поточний стан заявки (одна з констант Status*).</summary>
+    public int Status { get; private set; }
 
     /// <summary>Дата й час створення заявки.</summary>
     public DateTime CreatedAt { get; private set; }
@@ -86,30 +119,24 @@ public class WorkRequest
         {
             int stageHours = int.Parse(_stages[i][1]);
             decimal stageRate = decimal.Parse(_stages[i][2]);
-            total = total + (stageHours * stageRate);
-            stageCount = stageCount + 1;
+            total += stageHours * stageRate;
+            stageCount++;
         }
-
-        // if (sum1 > 500) { sum1 = sum1 - 50; } // стара знижка
 
         // Знижки не сумуються: постійний клієнт отримує лише свою знижку,
         // навіть якщо сума перевищує поріг великої заявки.
-        if (isRegularClient == true && total > 1000)
+        if (isRegularClient && total > RegularDiscountThreshold)
         {
-            total = total * 0.9m;
+            total *= 1m - RegularDiscountRate;
         }
-        else if (total > 5000)
+        else if (total > LargeRequestThreshold)
         {
-            total = total * 0.85m;
-        }
-        else
-        {
-            total = total;
+            total *= 1m - LargeRequestDiscountRate;
         }
 
-        if (stageCount > 10)
+        if (stageCount > BulkStageCount)
         {
-            total = total - 100;
+            total -= BulkDiscountAmount;
         }
 
         if (total < 0)
@@ -118,7 +145,7 @@ public class WorkRequest
         }
 
         // ПДВ нараховується на суму вже після всіх знижок.
-        total = total + (total * 0.2m);
+        total += total * VatRate;
         return Math.Round(total, 2);
     }
 
@@ -132,21 +159,21 @@ public class WorkRequest
     /// </returns>
     public bool TryChangeStatus(int newStatus)
     {
-        if (Status == 0 && newStatus == 1)
+        if (Status == StatusNew && newStatus == StatusInProgress)
         {
-            Status = 1;
+            Status = StatusInProgress;
             return true;
         }
 
-        if (Status == 1 && newStatus == 2)
+        if (Status == StatusInProgress && newStatus == StatusDone)
         {
-            Status = 2;
+            Status = StatusDone;
             return true;
         }
 
-        if (Status == 0 && newStatus == 3)
+        if (Status == StatusNew && newStatus == StatusCancelled)
         {
-            Status = 3;
+            Status = StatusCancelled;
             return true;
         }
 
@@ -161,11 +188,11 @@ public class WorkRequest
     {
         if (Id is not null && Id.Length > 0
             && ClientName is not null
-            && ClientName.Length > 2
+            && ClientName.Length >= MinClientNameLength
             && _stages.Count > 0
-            && _stages.Count < 100
-            && Status >= 0
-            && Status <= 3)
+            && _stages.Count < MaxStageCount
+            && Status >= StatusNew
+            && Status <= StatusCancelled)
         {
             return true;
         }
