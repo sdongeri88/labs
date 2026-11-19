@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <!-- ЛР2: тимчасово, поки успадкований код не приведено до стандарту; повертається в завданні 7 -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
