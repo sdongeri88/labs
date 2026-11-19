@@ -1,36 +1,14 @@
-using System.Globalization;
 using System.Text;
 using TaskTracker.Core.Domain;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-WorkTask task = new()
-{
-    Id = 1,
-    ProjectCode = "CRM",
-    AssigneeId = 10,
-    CreatedAt = DateTimeOffset.Now,
-};
+var z = new zayavka("R-1001", "Іваненко");
+z.Add("ST-1", 3, 250m);
+z.Add("ST-2", 12, 90m);
 
-task.AddLog(new WorkLog
-{
-    Activity = "DEV",
-    Hours = 4.5m,
-    HourlyRate = 400m,
-});
-task.AddLog(new WorkLog
-{
-    Activity = "REVIEW",
-    Hours = 1.5m,
-    HourlyRate = 300m,
-});
-
-string hours = task.TotalHours()
-    .ToString("F2", CultureInfo.InvariantCulture);
-string cost = task.TotalCost()
-    .ToString("F2", CultureInfo.InvariantCulture);
-Console.WriteLine($"Завдання #{task.Id} (проєкт {task.ProjectCode})");
-Console.WriteLine($"Стан: {task.Status}");
-Console.WriteLine($"Записів часу: {task.Logs.Count}");
-Console.WriteLine($"Годин: {hours}");
-Console.WriteLine($"Вартість: {cost}");
+Console.WriteLine(z.ProcessData(false));
+Console.WriteLine(z.ProcessData(true));
+Console.WriteLine(z.Ck());
+Console.WriteLine(z.Chg(1));
+Console.Write(z.Rep());
