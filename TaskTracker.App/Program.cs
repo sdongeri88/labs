@@ -11,6 +11,8 @@ using TaskTracker.Core.Storage;
 
 Console.OutputEncoding = Encoding.UTF8;
 
+string auditPath = "audit.log";
+
 using ILoggerFactory factory = LoggerFactory.Create(builder =>
 {
     builder.AddSimpleConsole(options =>
@@ -25,12 +27,13 @@ ILogger log = factory.CreateLogger("TaskTracker.App");
 #pragma warning disable CA1031 // Верхній обробник — єдине місце, де дозволено catch (Exception).
 try
 {
-    Run(factory, args);
+    Run(factory, args, auditPath);
     return 0;
 }
 catch (DomainRuleException ex)
 {
     log.LogWarning("Правило {Rule}: {Message}", ex.Rule, ex.Message);
+    Console.WriteLine($"Файл аудиту закрито після винятку: {IsFileClosed(auditPath)}");
     return 1;
 }
 catch (Exception ex)
@@ -40,7 +43,7 @@ catch (Exception ex)
 }
 #pragma warning restore CA1031
 
-static void Run(ILoggerFactory factory, string[] args)
+static void Run(ILoggerFactory factory, string[] args, string auditPath)
 {
     // Композиційний корінь: єдине місце, де створюються конкретні реалізації.
     IPricingPolicy pricing = ChoosePolicy(args.Length > 0 ? args[0] : "regular");
@@ -56,12 +59,30 @@ static void Run(ILoggerFactory factory, string[] args)
     decimal total = service.CostOf(task);
     Console.WriteLine("Сума: " + total.ToString("0.00", CultureInfo.InvariantCulture));
 
+    using var audit = new FileAuditLog(auditPath);
+    audit.Write("register", task.Id);
     task.SubmitForReview();
     service.CloseTask(task.Id, 10000m);
+    audit.Write("close", task.Id);
+    ReportExporter.Export(Path.Combine("exports", "task-1.txt"), task, service.CostOf(task));
+    audit.Write("export", task.Id);
     Console.WriteLine($"Стан завдання: {task.Status}");
 
-    // Демонстрація: завершене завдання скасувати не можна — виняток до верхнього обробника.
+    // Демонстрація: виняток усередині using — файл аудиту однаково закриється.
     service.Cancel(task.Id, "демонстрація помилки");
+}
+
+static bool IsFileClosed(string path)
+{
+    try
+    {
+        using FileStream probe = new(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        return true;
+    }
+    catch (IOException)
+    {
+        return false;
+    }
 }
 
 static IPricingPolicy ChoosePolicy(string clientType)

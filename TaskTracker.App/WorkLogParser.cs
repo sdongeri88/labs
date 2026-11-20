@@ -10,7 +10,7 @@ namespace TaskTracker.App;
 /// </summary>
 internal static class WorkLogParser
 {
-    private static readonly CultureInfo Culture = CultureInfo.InvariantCulture;
+    private static readonly CultureInfo _culture = CultureInfo.InvariantCulture;
 
     /// <summary>Розбирає рядок формату «вид;години;ставка».</summary>
     /// <param name="line">Рядок вводу.</param>
@@ -38,14 +38,14 @@ internal static class WorkLogParser
             return Result.Fail<WorkLog>("Вид роботи порожній");
         }
 
-        if (!decimal.TryParse(hours, NumberStyles.AllowDecimalPoint, Culture, out decimal h)
+        if (!decimal.TryParse(hours, NumberStyles.AllowDecimalPoint, _culture, out decimal h)
             || h <= 0m || h > WorkLog.MaxHoursPerEntry)
         {
             return Result.Fail<WorkLog>(
                 "Години — число більше 0 і не більше 24 (роздільник — крапка)");
         }
 
-        if (!decimal.TryParse(rate, NumberStyles.AllowDecimalPoint, Culture, out decimal r) || r < 0m)
+        if (!decimal.TryParse(rate, NumberStyles.AllowDecimalPoint, _culture, out decimal r) || r < 0m)
         {
             return Result.Fail<WorkLog>("Ставка — невід’ємне число");
         }
@@ -62,7 +62,7 @@ internal static class WorkLogParser
         int valid = 0;
         foreach (string row in rows)
         {
-            if (int.TryParse(row, NumberStyles.Integer, Culture, out int h) && h > 0)
+            if (int.TryParse(row, NumberStyles.Integer, _culture, out int h) && h > 0)
             {
                 valid++;
             }

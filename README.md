@@ -27,3 +27,13 @@
 ## Автор
 
 Решетнік Костянтин, група 472
+
+## ЛР5: обробка помилок і логування
+
+- класифікація помилок — docs/errors.md;
+- барикада: TaskTracker.App/WorkLogParser.cs повертає Result, ядро приймає WorkLog;
+- DomainRuleException і Result — TaskTracker.Core/Errors;
+- журнал Microsoft.Extensions.Logging (Debug/Information/Warning/Error, BeginScope);
+- аудит у audit.log через FileAuditLog (IDisposable).
+
+Запуск із демонстраційним вводом: dotnet run --project TaskTracker.App < docs/lab05/demo-input.txt
