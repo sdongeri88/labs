@@ -82,6 +82,7 @@ public class WorkRequest
     /// <returns>Знайдена заявка або null, якщо такої немає.</returns>
     public static WorkRequest? FindById(List<WorkRequest> requests, string requestId)
     {
+        ArgumentNullException.ThrowIfNull(requests);
         for (int i = 0; i < requests.Count; i++)
         {
             if (requests[i].Id == requestId)

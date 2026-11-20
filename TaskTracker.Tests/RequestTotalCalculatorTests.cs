@@ -1,6 +1,5 @@
 using TaskTracker.Core.Reporting;
 using TaskTracker.Core.Requests;
-using Xunit;
 
 namespace TaskTracker.Tests;
 
