@@ -16,6 +16,9 @@ public sealed class InvoiceDiscountPolicy : IInvoiceDiscountPolicy
     /// <summary>Межа великого рахунку, грн.</summary>
     public const decimal BigInvoiceFrom = 1000m;
 
+    /// <summary>Максимальна сума знижки, грн.</summary>
+    public const decimal MaxDiscount = 150m;
+
     /// <inheritdoc/>
     public decimal DiscountFor(decimal amount, bool isRegular)
     {
@@ -36,6 +39,12 @@ public sealed class InvoiceDiscountPolicy : IInvoiceDiscountPolicy
             rate += BigInvoiceRate;
         }
 
-        return decimal.Round(amount * rate, 2);
+        decimal discount = decimal.Round(amount * rate, 2);
+        if (discount > MaxDiscount)
+        {
+            discount = MaxDiscount;
+        }
+
+        return discount;
     }
 }
