@@ -940,6 +940,7 @@ return hasId && hasClient && hasValidStages;
 | 18 | `csharp_style_var_for_built_in_types` | `false` | suggestion | явний вбудований тип (D-03) |
 | 19 | `dotnet_style_readonly_field` | `true` | error | `readonly` для незмінних полів (D-09) |
 | 20 | `dotnet_style_require_accessibility_modifiers` | `for_non_interface_members` | error | явний модифікатор доступу (D-09) |
+| 20а | `dotnet_diagnostic.IDE1006.severity` | `error` | error | вмикає правила іменування 21–28 під час `dotnet build`; без цього рядка вони діяли лише в редакторі — знайдено навмисним порушенням (6.6) |
 | 21 | `dotnet_naming_rule.types_pascal.*` | `pascal_case` | error | імена типів (N-02) |
 | 22 | `dotnet_naming_rule.interface_i.*` | префікс `I` | error | імена інтерфейсів (N-03) |
 | 23 | `dotnet_naming_rule.type_param_t.*` | префікс `T` | error | параметри узагальнених типів (N-05) |
@@ -1044,7 +1045,7 @@ public static TotalResult Calculate(TotalRequest request)
 
 ### 6.6. Доказ роботи механізму
 
-Механізм перевірено навмисним порушенням (див. рисунки звіту): у `TaskTracker.Core` додано файл з полем без префікса, `if` без дужок, неповним switch-виразом за `EstimateStatus`, типом `double` для годин і директивою `#pragma`. Складання впало з помилками IDE1006, IDE0011, CS8509, а `tools/check-style.ps1` — з порушеннями D-14 і A-06. Після виправлення файлу збірка, тести, форматування й скрипт — зелені.
+Механізм перевірено навмисним порушенням (див. рисунки звіту): у `TaskTracker.Core` додано файл з полем без префікса, `if` без дужок, неповним switch-виразом за `EstimateStatus`, типом `double` для годин і директивою `#pragma`. Складання впало з шістьма помилками (CS8509, CS0649, IDE1006, IDE0011, SA1503, IDE0044), а `tools/check-style.ps1` — з порушеннями D-14 і A-06. Під час першої спроби IDE1006 у виводі не було: правила іменування з рівнем error у `dotnet_naming_rule.*.severity` діяли лише в редакторі. Рядок `dotnet_diagnostic.IDE1006.severity = error` виправив це — саме для таких випадків механізм і перевіряють навмисним порушенням. Після виправлення файлу збірка, тести, форматування й скрипт — зелені.
 
 ## 7. Чекліст огляду, порівняння, порядок змін
 
