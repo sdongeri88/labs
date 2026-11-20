@@ -3,16 +3,6 @@ using System.Collections.Generic;
 
 namespace TaskTracker.Legacy;
 
-public class TeamClient
-{
-    public int Id;
-    public string Name = "";
-    public string Email = "";
-    public string Kind = "regular";
-    public int ClosedTasks;
-    public DateTime SinceUtc;
-}
-
 public class TimeLine
 {
     public string Activity = "";
@@ -29,15 +19,15 @@ public class LegacyBillingProcessor
 
     public string Handle(int taskId, int clientId,
         string clientName, string? clientMail,
-        string clientKind, int clientClosed,
-        List<TimeLine>? lines, string state,
+        ClientKind clientKind, int clientClosed,
+        List<TimeLine>? lines, BillState state,
         string currency, DateTime createdAt, bool sendMail)
     {
         if (lines != null)
         {
             if (lines.Count > 0)
             {
-                if (state == "new" || state == "paid")
+                if (state == BillState.New || state == BillState.Paid)
                 {
                     if (clientMail != null &&
                         clientMail.Contains("@"))
@@ -71,12 +61,12 @@ public class LegacyBillingProcessor
         }
 
         _tmpDiscount = 0m;
-        if (clientKind == "vip")
+        if (clientKind == ClientKind.Vip)
         {
             _tmpDiscount = _tmpSum * PricingRules.VipRate;
             if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
         }
-        else if (clientKind == "staff")
+        else if (clientKind == ClientKind.Staff)
         {
             _tmpDiscount = _tmpSum * PricingRules.StaffRate;
             if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
@@ -113,7 +103,7 @@ public class LegacyBillingProcessor
         return txt;
     }
 
-    public decimal Preview(string clientKind, int clientClosed,
+    public decimal Preview(ClientKind clientKind, int clientClosed,
         List<TimeLine> lines)
     {
         decimal s = 0m;
@@ -122,12 +112,12 @@ public class LegacyBillingProcessor
             s += it.Hours * it.Rate;
         }
         decimal d = 0m;
-        if (clientKind == "vip")
+        if (clientKind == ClientKind.Vip)
         {
             d = s * PricingRules.VipRate;
             if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
         }
-        else if (clientKind == "staff")
+        else if (clientKind == ClientKind.Staff)
         {
             d = s * PricingRules.StaffRate;
             if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
@@ -145,7 +135,7 @@ public class LegacyBillingProcessor
     public string DescribeClient(TeamClient c)
     {
         string s = c.Name.Trim().ToUpper();
-        if (c.Kind == "vip") s += " [VIP]";
+        if (c.Kind == ClientKind.Vip) s += " [VIP]";
         if (c.ClosedTasks > PricingRules.LoyalOrders) s += " [ЛОЯЛЬНИЙ]";
         s += " <" + c.Email.ToLower() + ">";
         int years = DateTime.Now.Year - c.SinceUtc.Year;
