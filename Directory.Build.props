@@ -11,5 +11,7 @@
     <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Решетнік Костянтин</Authors>
     <Product>TaskTracker</Product>
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
   </PropertyGroup>
 </Project>
