@@ -73,22 +73,22 @@ public class LegacyBillingProcessor
         _tmpDiscount = 0m;
         if (clientKind == "vip")
         {
-            _tmpDiscount = _tmpSum * 0.15m;
-            if (_tmpDiscount > 500m) _tmpDiscount = 500m;
+            _tmpDiscount = _tmpSum * PricingRules.VipRate;
+            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
         }
         else if (clientKind == "staff")
         {
-            _tmpDiscount = _tmpSum * 0.30m;
-            if (_tmpDiscount > 500m) _tmpDiscount = 500m;
+            _tmpDiscount = _tmpSum * PricingRules.StaffRate;
+            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
         }
-        else if (clientClosed > 10)
+        else if (clientClosed > PricingRules.LoyalOrders)
         {
-            _tmpDiscount = _tmpSum * 0.05m;
-            if (_tmpDiscount > 500m) _tmpDiscount = 500m;
+            _tmpDiscount = _tmpSum * PricingRules.LoyalRate;
+            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
         }
 
         decimal ship = 0m;
-        if (_tmpSum - _tmpDiscount < 1000m) ship = 60m;
+        if (_tmpSum - _tmpDiscount < PricingRules.FreeShipFrom) ship = PricingRules.ShipCost;
         decimal total = _tmpSum - _tmpDiscount + ship;
 
         string txt = "Документ #" + taskId + "\n";
@@ -124,21 +124,21 @@ public class LegacyBillingProcessor
         decimal d = 0m;
         if (clientKind == "vip")
         {
-            d = s * 0.15m;
-            if (d > 500m) d = 500m;
+            d = s * PricingRules.VipRate;
+            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
         }
         else if (clientKind == "staff")
         {
-            d = s * 0.30m;
-            if (d > 500m) d = 500m;
+            d = s * PricingRules.StaffRate;
+            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
         }
-        else if (clientClosed > 10)
+        else if (clientClosed > PricingRules.LoyalOrders)
         {
-            d = s * 0.05m;
-            if (d > 500m) d = 500m;
+            d = s * PricingRules.LoyalRate;
+            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
         }
         decimal sh = 0m;
-        if (s - d < 1000m) sh = 60m;
+        if (s - d < PricingRules.FreeShipFrom) sh = PricingRules.ShipCost;
         return s - d + sh;
     }
 
@@ -146,7 +146,7 @@ public class LegacyBillingProcessor
     {
         string s = c.Name.Trim().ToUpper();
         if (c.Kind == "vip") s += " [VIP]";
-        if (c.ClosedTasks > 10) s += " [ЛОЯЛЬНИЙ]";
+        if (c.ClosedTasks > PricingRules.LoyalOrders) s += " [ЛОЯЛЬНИЙ]";
         s += " <" + c.Email.ToLower() + ">";
         int years = DateTime.Now.Year - c.SinceUtc.Year;
         s += " стаж " + years;
