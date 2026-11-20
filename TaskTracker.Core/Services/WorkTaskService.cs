@@ -1,5 +1,6 @@
 using TaskTracker.Core.Abstractions;
 using TaskTracker.Core.Domain;
+using TaskTracker.Core.Errors;
 
 namespace TaskTracker.Core.Services;
 
@@ -34,6 +35,23 @@ public sealed partial class WorkTaskService
         ArgumentNullException.ThrowIfNull(task);
         _repository.Add(task);
         _notifier.Notify(LeadRecipient, $"Завдання #{task.Id} ({task.ProjectCode}) зареєстровано");
+    }
+
+    /// <summary>Додає запис часу до завдання, що перебуває в роботі.</summary>
+    /// <param name="taskId">Ідентифікатор завдання.</param>
+    /// <param name="log">Перевірений запис часу.</param>
+    public void AddLog(int taskId, WorkLog log)
+    {
+        ArgumentNullException.ThrowIfNull(log);
+        WorkTask task = _repository.GetById(taskId)
+            ?? throw new DomainRuleException("task.exists", $"Завдання {taskId} не знайдено");
+        if (task.Status != WorkTaskStatus.InProgress)
+        {
+            throw new DomainRuleException(
+                "task.editable", $"Стан {task.Status} не дозволяє облік часу завдання {taskId}");
+        }
+
+        task.AddLog(log);
     }
 
     /// <summary>Обчислює вартість завдання за поточною політикою.</summary>

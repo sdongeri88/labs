@@ -47,7 +47,8 @@ public class WorkRequest
     /// <summary>Найкоротше допустиме ім’я клієнта.</summary>
     private const int MinClientNameLength = 3;
 
-    private readonly List<string[]> _stages = new List<string[]>();
+    private readonly List<(string Code, int Hours, decimal Rate)> _stages =
+        new List<(string Code, int Hours, decimal Rate)>();
 
     /// <summary>
     /// Створює нову заявку зі станом «нова» та поточною датою створення.
@@ -100,11 +101,8 @@ public class WorkRequest
     /// <param name="hourlyRate">Погодинна ставка, грн.</param>
     public void AddStage(string stageCode, int hours, decimal hourlyRate)
     {
-        string[] stage = new string[3];
-        stage[0] = stageCode;
-        stage[1] = hours.ToString(CultureInfo.CurrentCulture);
-        stage[2] = hourlyRate.ToString(CultureInfo.CurrentCulture);
-        _stages.Add(stage);
+        // ЛР5: етап зберігається типізовано — повторний Parse рядків не потрібен.
+        _stages.Add((stageCode, hours, hourlyRate));
     }
 
     /// <summary>
@@ -119,9 +117,7 @@ public class WorkRequest
         int stageCount = 0;
         for (int i = 0; i < _stages.Count; i++)
         {
-            int stageHours = int.Parse(_stages[i][1], CultureInfo.CurrentCulture);
-            decimal stageRate = decimal.Parse(_stages[i][2], CultureInfo.CurrentCulture);
-            total += stageHours * stageRate;
+            total += _stages[i].Hours * _stages[i].Rate;
             stageCount++;
         }
 
@@ -211,12 +207,11 @@ public class WorkRequest
         string report = string.Empty;
         for (int i = 0; i < _stages.Count; i++)
         {
-            int stageHours = int.Parse(_stages[i][1], CultureInfo.CurrentCulture);
-            decimal stageRate = decimal.Parse(_stages[i][2], CultureInfo.CurrentCulture);
-            report = report + "Етап: " + _stages[i][0]
-                + "; годин: " + _stages[i][1]
-                + "; ставка: " + _stages[i][2]
-                + "; вартість: " + (stageHours * stageRate) + "\n";
+            (string code, int hours, decimal rate) = _stages[i];
+            report = report + "Етап: " + code
+                + "; годин: " + hours.ToString(CultureInfo.CurrentCulture)
+                + "; ставка: " + rate.ToString(CultureInfo.CurrentCulture)
+                + "; вартість: " + (hours * rate) + "\n";
         }
 
         report = report + "Разом: " + CalculateCost(false) + "\n";
