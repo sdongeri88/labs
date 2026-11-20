@@ -28,31 +28,9 @@ public class LegacyBillingProcessor
 
         _log.Add("ok " + taskId);
 
-        _tmpSum = 0m;
-        for (int i = 0; i < lines!.Count; i++)
-        {
-            _tmpSum += lines[i].Hours * lines[i].Rate;
-        }
-
-        _tmpDiscount = 0m;
-        if (clientKind == ClientKind.Vip)
-        {
-            _tmpDiscount = _tmpSum * PricingRules.VipRate;
-            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
-        }
-        else if (clientKind == ClientKind.Staff)
-        {
-            _tmpDiscount = _tmpSum * PricingRules.StaffRate;
-            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
-        }
-        else if (clientClosed > PricingRules.LoyalOrders)
-        {
-            _tmpDiscount = _tmpSum * PricingRules.LoyalRate;
-            if (_tmpDiscount > PricingRules.MaxDiscount) _tmpDiscount = PricingRules.MaxDiscount;
-        }
-
-        decimal ship = 0m;
-        if (_tmpSum - _tmpDiscount < PricingRules.FreeShipFrom) ship = PricingRules.ShipCost;
+        _tmpSum = Subtotal(lines!);
+        _tmpDiscount = DiscountOf(_tmpSum, clientKind, clientClosed);
+        decimal ship = ShippingOf(_tmpSum - _tmpDiscount);
         decimal total = _tmpSum - _tmpDiscount + ship;
 
         string txt = "Документ #" + taskId + "\n";
@@ -85,6 +63,28 @@ public class LegacyBillingProcessor
         if (mail is null || !mail.Contains("@")) return "ERR: mail";
         return null;
     }
+
+    private static decimal Subtotal(IReadOnlyList<TimeLine> lines)
+    {
+        decimal sum = 0m;
+        foreach (var it in lines) sum += it.Hours * it.Rate;
+        return sum;
+    }
+
+    private static decimal DiscountOf(decimal subtotal, ClientKind kind, int closed)
+    {
+        decimal discount = 0m;
+        if (kind == ClientKind.Vip)
+            discount = subtotal * PricingRules.VipRate;
+        else if (kind == ClientKind.Staff)
+            discount = subtotal * PricingRules.StaffRate;
+        else if (closed > PricingRules.LoyalOrders)
+            discount = subtotal * PricingRules.LoyalRate;
+        return Math.Min(discount, PricingRules.MaxDiscount);
+    }
+
+    private static decimal ShippingOf(decimal payable) =>
+        payable < PricingRules.FreeShipFrom ? PricingRules.ShipCost : 0m;
 
     public decimal Preview(ClientKind clientKind, int clientClosed,
         List<TimeLine> lines)
