@@ -52,4 +52,22 @@ internal static class WorkLogParser
 
         return Result.Ok(new WorkLog(activity, h, r));
     }
+
+    /// <summary>Рахує рядки, що є коректною цілою кількістю годин.</summary>
+    /// <param name="rows">Рядки вводу.</param>
+    /// <returns>Кількість коректних значень.</returns>
+    public static int CountValidHours(string[] rows)
+    {
+        ArgumentNullException.ThrowIfNull(rows);
+        int valid = 0;
+        foreach (string row in rows)
+        {
+            if (int.TryParse(row, NumberStyles.Integer, Culture, out int h) && h > 0)
+            {
+                valid++;
+            }
+        }
+
+        return valid;
+    }
 }

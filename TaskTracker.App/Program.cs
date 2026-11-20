@@ -10,21 +10,46 @@ using TaskTracker.Core.Storage;
 
 Console.OutputEncoding = Encoding.UTF8;
 
-// Композиційний корінь: єдине місце, де створюються конкретні реалізації.
-IPricingPolicy pricing = ChoosePolicy(args.Length > 0 ? args[0] : "regular");
-var repository = new InMemoryTaskRepository();
-var service = new WorkTaskService(repository, pricing, new ConsoleNotifier());
+#pragma warning disable CA1031 // Верхній обробник — єдине місце, де дозволено catch (Exception).
+try
+{
+    Run(args);
+    return 0;
+}
+catch (DomainRuleException ex)
+{
+    Console.WriteLine($"Порушено правило {ex.Rule}: {ex.Message}");
+    return 1;
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Непередбачений збій: {ex}");
+    return 2;
+}
+#pragma warning restore CA1031
 
-var task = new WorkTask(1, "CRM", 10, DateOnly.FromDateTime(DateTime.Today));
-task.Start();
-service.Register(task);
+static void Run(string[] args)
+{
+    // Композиційний корінь: єдине місце, де створюються конкретні реалізації.
+    IPricingPolicy pricing = ChoosePolicy(args.Length > 0 ? args[0] : "regular");
+    var repository = new InMemoryTaskRepository();
+    var service = new WorkTaskService(repository, pricing, new ConsoleNotifier());
 
-ReadLogs(service, task.Id);
-Console.WriteLine("Сума: " + service.CostOf(task).ToString("0.00", CultureInfo.InvariantCulture));
+    var task = new WorkTask(1, "CRM", 10, DateOnly.FromDateTime(DateTime.Today));
+    task.Start();
+    service.Register(task);
 
-task.SubmitForReview();
-service.CloseTask(task.Id, 10000m);
-Console.WriteLine($"Стан завдання: {task.Status}");
+    ReadLogs(service, task.Id);
+    decimal total = service.CostOf(task);
+    Console.WriteLine("Сума: " + total.ToString("0.00", CultureInfo.InvariantCulture));
+
+    task.SubmitForReview();
+    service.CloseTask(task.Id, 10000m);
+    Console.WriteLine($"Стан завдання: {task.Status}");
+
+    // Демонстрація: завершене завдання скасувати не можна — виняток до верхнього обробника.
+    service.Cancel(task.Id, "демонстрація помилки");
+}
 
 static IPricingPolicy ChoosePolicy(string clientType)
 {
