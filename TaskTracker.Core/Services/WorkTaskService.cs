@@ -37,6 +37,13 @@ public sealed partial class WorkTaskService
         _notifier.Notify(LeadRecipient, $"Завдання #{task.Id} ({task.ProjectCode}) зареєстровано");
     }
 
+    /// <summary>Повертає завдання або кидає виняток, якщо його немає.</summary>
+    /// <param name="taskId">Ідентифікатор завдання.</param>
+    /// <returns>Знайдене завдання.</returns>
+    public WorkTask Load(int taskId) =>
+        _repository.GetById(taskId)
+        ?? throw new DomainRuleException("task.exists", $"Завдання {taskId} не знайдено");
+
     /// <summary>Додає запис часу до завдання, що перебуває в роботі.</summary>
     /// <param name="taskId">Ідентифікатор завдання.</param>
     /// <param name="log">Перевірений запис часу.</param>
@@ -75,6 +82,26 @@ public sealed partial class WorkTaskService
         }
 
         task.Complete();
+    }
+
+    /// <summary>Скасовує завдання; заборонений перехід стає порушенням правила.</summary>
+    /// <param name="taskId">Ідентифікатор завдання.</param>
+    /// <param name="reason">Причина скасування.</param>
+    public void Cancel(int taskId, string reason)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
+        WorkTask task = Load(taskId);
+        try
+        {
+            task.Cancel();
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new DomainRuleException(
+                "task.cancellable",
+                $"Завдання {taskId} у стані {task.Status} не можна скасувати",
+                ex);
+        }
     }
 
     /// <summary>Обчислює вартість завдання за поточною політикою.</summary>
