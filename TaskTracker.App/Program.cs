@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using TaskTracker.App;
 using TaskTracker.Core.Abstractions;
 using TaskTracker.Core.Domain;
@@ -10,30 +11,42 @@ using TaskTracker.Core.Storage;
 
 Console.OutputEncoding = Encoding.UTF8;
 
+using ILoggerFactory factory = LoggerFactory.Create(builder =>
+{
+    builder.AddSimpleConsole(options =>
+    {
+        options.TimestampFormat = "HH:mm:ss ";
+        options.IncludeScopes = true;
+    });
+    builder.SetMinimumLevel(LogLevel.Debug);
+});
+ILogger log = factory.CreateLogger("TaskTracker.App");
+
 #pragma warning disable CA1031 // Верхній обробник — єдине місце, де дозволено catch (Exception).
 try
 {
-    Run(args);
+    Run(factory, args);
     return 0;
 }
 catch (DomainRuleException ex)
 {
-    Console.WriteLine($"Порушено правило {ex.Rule}: {ex.Message}");
+    log.LogWarning("Правило {Rule}: {Message}", ex.Rule, ex.Message);
     return 1;
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Непередбачений збій: {ex}");
+    log.LogCritical(ex, "Непередбачений збій");
     return 2;
 }
 #pragma warning restore CA1031
 
-static void Run(string[] args)
+static void Run(ILoggerFactory factory, string[] args)
 {
     // Композиційний корінь: єдине місце, де створюються конкретні реалізації.
     IPricingPolicy pricing = ChoosePolicy(args.Length > 0 ? args[0] : "regular");
     var repository = new InMemoryTaskRepository();
-    var service = new WorkTaskService(repository, pricing, new ConsoleNotifier());
+    var service = new WorkTaskService(
+        repository, pricing, new ConsoleNotifier(), factory.CreateLogger<WorkTaskService>());
 
     var task = new WorkTask(1, "CRM", 10, DateOnly.FromDateTime(DateTime.Today));
     task.Start();
