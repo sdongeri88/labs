@@ -488,3 +488,9 @@ data/*.local.json
 # ЛР5: журнали й експорт
 audit.log
 exports/
+
+# ЛР7: результати тестів і звіти покриття
+bin/
+obj/
+TestResults/
+coverage/
