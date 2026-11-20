@@ -54,6 +54,29 @@ public sealed partial class WorkTaskService
         task.AddLog(log);
     }
 
+    /// <summary>Закриває перевірене завдання в межах погодженого бюджету.</summary>
+    /// <param name="taskId">Ідентифікатор завдання.</param>
+    /// <param name="approvedBudget">Погоджений бюджет, грн.</param>
+    public void CloseTask(int taskId, decimal approvedBudget)
+    {
+        WorkTask task = _repository.GetById(taskId)
+            ?? throw new DomainRuleException("task.exists", $"Завдання {taskId} не знайдено");
+        if (task.Status != WorkTaskStatus.Review)
+        {
+            throw new DomainRuleException(
+                "task.closable", $"Стан {task.Status} не дозволяє закрити завдання {taskId}");
+        }
+
+        decimal cost = CostOf(task);
+        if (approvedBudget < cost)
+        {
+            throw new DomainRuleException(
+                "task.budget", $"Погоджено {approvedBudget}, а вартість завдання {cost}");
+        }
+
+        task.Complete();
+    }
+
     /// <summary>Обчислює вартість завдання за поточною політикою.</summary>
     /// <param name="task">Завдання.</param>
     /// <returns>Вартість, грн.</returns>
