@@ -72,6 +72,20 @@ public class WorkTaskServiceTests
         Assert.Equal(WorkTaskStatus.Done, task.Status);
     }
 
+    [Fact]
+    public void CloseTask_CostOverBudget_ThrowsBudgetRule()
+    {
+        var repository = new FakeTaskRepository();
+        WorkTask task = InReview(6);
+        repository.Add(task);
+        WorkTaskService service = NewService(repository, new StubPricingPolicy(800m));
+
+        var ex = Assert.Throws<DomainRuleException>(() => service.CloseTask(6, 500m));
+
+        Assert.Equal("task.budget", ex.Rule);
+        Assert.Equal(WorkTaskStatus.Review, task.Status);
+    }
+
     private static WorkTask NewTask(int id) =>
         new(id, "CRM", 10, DateOnly.FromDateTime(DateTime.Today));
 
