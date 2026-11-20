@@ -29,9 +29,7 @@ public class LegacyCharacterizationTests
         };
         var sut = new LegacyBillingProcessor();
 
-        string actual = sut.Handle(
-            1001, 7, "Іван", mail, ClientKind.Regular, 0, lines, state, "UAH",
-            new DateTime(2026, 3, 1), false);
+        string actual = sut.Handle(Request(lines, state, mail, ClientKind.Regular, 0, false));
 
         Assert.Equal(expected, actual);
     }
@@ -42,8 +40,7 @@ public class LegacyCharacterizationTests
         var sut = new LegacyBillingProcessor();
 
         string report = sut.Handle(
-            1001, 7, "Іван", "a@b.c", ClientKind.Vip, 3, TwoLines(), BillState.New, "UAH",
-            new DateTime(2026, 3, 1), false);
+            Request(TwoLines(), BillState.New, "a@b.c", ClientKind.Vip, 3, false));
 
         string expected =
             "Документ #1001\n" +
@@ -61,9 +58,7 @@ public class LegacyCharacterizationTests
     {
         var sut = new LegacyBillingProcessor();
 
-        sut.Handle(
-            1001, 7, "Іван", "a@b.c", ClientKind.Regular, 0, TwoLines(), BillState.Paid, "UAH",
-            new DateTime(2026, 3, 1), true);
+        sut.Handle(Request(TwoLines(), BillState.Paid, "a@b.c", ClientKind.Regular, 0, true));
 
         Assert.Equal("ok 1001\nmail -> a@b.c\n", sut.DumpLog());
     }
@@ -77,7 +72,8 @@ public class LegacyCharacterizationTests
     {
         var sut = new LegacyBillingProcessor();
 
-        decimal total = sut.Preview(kind, closed, TwoLines());
+        decimal total = sut.Preview(
+            new TeamClient { Kind = kind, ClosedTasks = closed }, TwoLines());
 
         Assert.Equal(expected, total);
     }
@@ -89,7 +85,7 @@ public class LegacyCharacterizationTests
         var lines = new List<TimeLine> { new() { Activity = "DEV", Hours = 4, Rate = 250m } };
         var sut = new LegacyBillingProcessor();
 
-        decimal total = sut.Preview(ClientKind.Regular, 0, lines);
+        decimal total = sut.Preview(new TeamClient { Kind = ClientKind.Regular }, lines);
 
         Assert.Equal(1000m, total);
     }
@@ -114,6 +110,25 @@ public class LegacyCharacterizationTests
         string actual = new LegacyBillingProcessor().DescribeClient(c);
 
         Assert.Equal(expected, actual);
+    }
+
+    private static BillingRequest Request(
+        List<TimeLine>? lines,
+        BillState state,
+        string mail,
+        ClientKind kind,
+        int closed,
+        bool sendMail)
+    {
+        var client = new TeamClient
+        {
+            Id = 7,
+            Name = "Іван",
+            Email = mail,
+            Kind = kind,
+            ClosedTasks = closed,
+        };
+        return new BillingRequest(1001, client, lines, state, "UAH", sendMail);
     }
 
     private static List<TimeLine> TwoLines() => new()

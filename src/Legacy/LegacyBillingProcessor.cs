@@ -17,50 +17,46 @@ public class LegacyBillingProcessor
     private decimal _tmpDiscount;
     private readonly List<string> _log = new();
 
-    public string Handle(int taskId, int clientId,
-        string clientName, string? clientMail,
-        ClientKind clientKind, int clientClosed,
-        List<TimeLine>? lines, BillState state,
-        string currency, DateTime createdAt, bool sendMail)
+    public string Handle(BillingRequest req)
     {
-        string? error = Validate(lines, state, clientMail);
+        string? error = Validate(req);
         if (error != null) return error;
 
-        _log.Add("ok " + taskId);
+        _log.Add("ok " + req.TaskId);
 
-        _tmpSum = Subtotal(lines!);
-        _tmpDiscount = DiscountOf(_tmpSum, clientKind, clientClosed);
+        _tmpSum = Subtotal(req.Lines!);
+        _tmpDiscount = DiscountOf(_tmpSum, req.Client);
         decimal ship = ShippingOf(_tmpSum - _tmpDiscount);
         decimal total = _tmpSum - _tmpDiscount + ship;
 
-        string txt = "Документ #" + taskId + "\n";
-        txt += "Клієнт: " + clientName + "\n";
-        for (int i = 0; i < lines.Count; i++)
+        string txt = "Документ #" + req.TaskId + "\n";
+        txt += "Клієнт: " + req.Client.Name + "\n";
+        foreach (var line in req.Lines!)
         {
-            txt += lines[i].Activity + " x" + lines[i].Hours + " = " +
-                (lines[i].Hours * lines[i].Rate)
-                    .ToString("0.00") + " " + currency + "\n";
+            txt += line.Activity + " x" + line.Hours + " = " +
+                (line.Hours * line.Rate)
+                    .ToString("0.00") + " " + req.Currency + "\n";
         }
         txt += "Знижка: " + _tmpDiscount.ToString("0.00") +
-            " " + currency + "\n";
+            " " + req.Currency + "\n";
         txt += "Доставка: " + ship.ToString("0.00") +
-            " " + currency + "\n";
+            " " + req.Currency + "\n";
         txt += "Разом: " + total.ToString("0.00") +
-            " " + currency + "\n";
+            " " + req.Currency + "\n";
 
-        if (sendMail)
+        if (req.SendMail)
         {
-            _log.Add("mail -> " + clientMail);
+            _log.Add("mail -> " + req.Client.Email);
         }
         return txt;
     }
 
-    private static string? Validate(List<TimeLine>? lines, BillState state, string? mail)
+    private static string? Validate(BillingRequest req)
     {
-        if (lines is null) return "ERR: null";
-        if (lines.Count == 0) return "ERR: empty";
-        if (state is not (BillState.New or BillState.Paid)) return "ERR: state";
-        if (mail is null || !mail.Contains("@")) return "ERR: mail";
+        if (req.Lines is null) return "ERR: null";
+        if (req.Lines.Count == 0) return "ERR: empty";
+        if (req.State is not (BillState.New or BillState.Paid)) return "ERR: state";
+        if (!req.Client.HasValidEmail) return "ERR: mail";
         return null;
     }
 
@@ -71,14 +67,14 @@ public class LegacyBillingProcessor
         return sum;
     }
 
-    private static decimal DiscountOf(decimal subtotal, ClientKind kind, int closed)
+    private static decimal DiscountOf(decimal subtotal, TeamClient client)
     {
         decimal discount = 0m;
-        if (kind == ClientKind.Vip)
+        if (client.Kind == ClientKind.Vip)
             discount = subtotal * PricingRules.VipRate;
-        else if (kind == ClientKind.Staff)
+        else if (client.Kind == ClientKind.Staff)
             discount = subtotal * PricingRules.StaffRate;
-        else if (closed > PricingRules.LoyalOrders)
+        else if (client.ClosedTasks > PricingRules.LoyalOrders)
             discount = subtotal * PricingRules.LoyalRate;
         return Math.Min(discount, PricingRules.MaxDiscount);
     }
@@ -86,11 +82,10 @@ public class LegacyBillingProcessor
     private static decimal ShippingOf(decimal payable) =>
         payable < PricingRules.FreeShipFrom ? PricingRules.ShipCost : 0m;
 
-    public decimal Preview(ClientKind clientKind, int clientClosed,
-        List<TimeLine> lines)
+    public decimal Preview(TeamClient client, IReadOnlyList<TimeLine> lines)
     {
         decimal subtotal = Subtotal(lines);
-        decimal discount = DiscountOf(subtotal, clientKind, clientClosed);
+        decimal discount = DiscountOf(subtotal, client);
         decimal payable = subtotal - discount;
         return payable + ShippingOf(payable);
     }
