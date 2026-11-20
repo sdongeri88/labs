@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging.Abstractions;
 using TaskTracker.Core.Abstractions;
 using TaskTracker.Core.Domain;
 using TaskTracker.Core.Pricing;
@@ -30,7 +31,8 @@ public class DomainInvariantTests
         var service = new WorkTaskService(
             new InMemoryTaskRepository(),
             new DiscountPricingPolicy(0.10m),
-            new SilentNotifier());
+            new SilentNotifier(),
+            NullLogger<WorkTaskService>.Instance);
         WorkTask task = NewTask(2);
         task.Start();
         task.AddLog(new WorkLog("DEV", 2m, 100m));

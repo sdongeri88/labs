@@ -76,3 +76,8 @@ dotnet_diagnostic.SA1201.severity = warning
 dotnet_diagnostic.SA1503.severity = warning
 dotnet_diagnostic.SA1516.severity = warning
 dotnet_diagnostic.IDE0055.severity = warning
+
+# ЛР5: виклики ILogger.LogDebug/LogInformation/... з іменованими заповнювачами — як у методичці.
+# LoggerMessage-делегати (CA1848) — лише оптимізація продуктивності, тому підказка, а не помилка.
+[*.cs]
+dotnet_diagnostic.CA1848.severity = suggestion
