@@ -3,8 +3,8 @@ using TaskTracker.Core.Domain;
 
 namespace TaskTracker.Core.Services;
 
-/// <summary>Прикладний сервіс завдань: сценарій реєстрації та розрахунок вартості.</summary>
-public sealed class WorkTaskService
+/// <summary>Прикладний сервіс завдань: сценарії реєстрації, обліку часу й закриття.</summary>
+public sealed partial class WorkTaskService
 {
     /// <summary>Адресат службових сповіщень про нові завдання.</summary>
     public const string LeadRecipient = "team-lead";
@@ -17,7 +17,10 @@ public sealed class WorkTaskService
     /// <param name="repository">Сховище завдань.</param>
     /// <param name="pricing">Політика ціноутворення.</param>
     /// <param name="notifier">Сповіщувач.</param>
-    public WorkTaskService(ITaskRepository repository, IPricingPolicy pricing, INotifier notifier)
+    public WorkTaskService(
+        ITaskRepository repository,
+        IPricingPolicy pricing,
+        INotifier notifier)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
         _pricing = pricing ?? throw new ArgumentNullException(nameof(pricing));
