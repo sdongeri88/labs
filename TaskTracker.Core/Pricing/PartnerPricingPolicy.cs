@@ -13,6 +13,6 @@ public sealed class PartnerPricingPolicy : IPricingPolicy
     public decimal PriceOf(WorkLog log)
     {
         ArgumentNullException.ThrowIfNull(log);
-        return Math.Round(log.Cost * (1m - Rate), 2);
+        return Math.Round(log.Cost * (1m - Rate), 2, MidpointRounding.AwayFromZero);
     }
 }

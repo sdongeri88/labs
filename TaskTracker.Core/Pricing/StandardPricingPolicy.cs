@@ -10,6 +10,6 @@ public sealed class StandardPricingPolicy : IPricingPolicy
     public decimal PriceOf(WorkLog log)
     {
         ArgumentNullException.ThrowIfNull(log);
-        return Math.Round(log.Cost, 2);
+        return Math.Round(log.Cost, 2, MidpointRounding.AwayFromZero);
     }
 }

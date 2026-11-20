@@ -24,6 +24,6 @@ public sealed class DiscountPricingPolicy : IPricingPolicy
     public decimal PriceOf(WorkLog log)
     {
         ArgumentNullException.ThrowIfNull(log);
-        return Math.Round(log.Cost * (1m - _rate), 2);
+        return Math.Round(log.Cost * (1m - _rate), 2, MidpointRounding.AwayFromZero);
     }
 }

@@ -45,7 +45,8 @@ internal static class WorkLogParser
                 "Години — число більше 0 і не більше 24 (роздільник — крапка)");
         }
 
-        if (!decimal.TryParse(rate, NumberStyles.AllowDecimalPoint, _culture, out decimal r) || r < 0m)
+        if (!decimal.TryParse(rate, NumberStyles.AllowDecimalPoint, _culture, out decimal r)
+            || r < 0m)
         {
             return Result.Fail<WorkLog>("Ставка — невід’ємне число");
         }

@@ -26,7 +26,7 @@ using ILoggerFactory factory = LoggerFactory.Create(builder =>
 });
 ILogger log = factory.CreateLogger("TaskTracker.App");
 
-#pragma warning disable CA1031 // Верхній обробник — єдине місце, де дозволено catch (Exception).
+// Верхній обробник: catch (Exception) дозволено лише тут, придушення CA1031 — у .editorconfig.
 try
 {
     Run(factory, args, auditPath);
@@ -43,7 +43,6 @@ catch (Exception ex)
     log.LogCritical(ex, "Непередбачений збій");
     return 2;
 }
-#pragma warning restore CA1031
 
 static void Run(ILoggerFactory factory, string[] args, string auditPath)
 {
