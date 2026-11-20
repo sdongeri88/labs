@@ -13,8 +13,6 @@ public class TimeLine
 
 public class LegacyBillingProcessor
 {
-    private decimal _tmpSum;
-    private decimal _tmpDiscount;
     private readonly DiscountPolicy _discounts = new();
     private readonly ShippingPolicy _shipping = new();
     private readonly ReportBuilder _report = new();
@@ -27,16 +25,16 @@ public class LegacyBillingProcessor
 
         _log.Add("ok " + req.TaskId);
 
-        _tmpSum = Subtotal(req.Lines!);
-        _tmpDiscount = _discounts.For(_tmpSum, req.Client);
-        decimal ship = _shipping.For(_tmpSum - _tmpDiscount);
-        decimal total = _tmpSum - _tmpDiscount + ship;
+        decimal subtotal = Subtotal(req.Lines!);
+        decimal discount = _discounts.For(subtotal, req.Client);
+        decimal shipping = _shipping.For(subtotal - discount);
+        decimal total = subtotal - discount + shipping;
 
         if (req.SendMail)
         {
             _log.Add("mail -> " + req.Client.Email);
         }
-        return _report.Build(req, _tmpDiscount, ship, total);
+        return _report.Build(req, discount, shipping, total);
     }
 
     private static string? Validate(BillingRequest req)
