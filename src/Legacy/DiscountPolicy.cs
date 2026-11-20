@@ -21,8 +21,12 @@ public sealed class DiscountPolicy
         foreach (var rule in _rules)
         {
             decimal? rate = rule.RateFor(c);
-            if (rate.HasValue) return rate.Value;
+            if (rate.HasValue)
+            {
+                return rate.Value;
+            }
         }
+
         return 0m;
     }
 }
