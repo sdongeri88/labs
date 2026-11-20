@@ -17,7 +17,7 @@ public static class RequestTotalCalculator
         total += TravelFeeOf(total, request.TravelFee);
         total = request.Status == RequestStatus.Cancelled
             ? 0m
-            : Math.Round(Math.Max(total, 0m), 2);
+            : Math.Round(Math.Max(total, 0m), 2, MidpointRounding.AwayFromZero);
         return new TotalResult(total, NextStatusOf(request.Status, total));
     }
 

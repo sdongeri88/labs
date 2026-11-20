@@ -24,7 +24,7 @@ public sealed class InvoiceDiscountPolicy : IInvoiceDiscountPolicy
     {
         EnsureAmountIsValid(amount);
         decimal raw = amount * RateFor(amount, isRegular);
-        return Math.Min(decimal.Round(raw, 2), MaxDiscount);
+        return Math.Min(decimal.Round(raw, 2, MidpointRounding.AwayFromZero), MaxDiscount);
     }
 
     private static void EnsureAmountIsValid(decimal amount)
