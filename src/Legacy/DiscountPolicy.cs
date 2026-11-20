@@ -2,16 +2,27 @@ namespace TaskTracker.Legacy;
 
 public sealed class DiscountPolicy
 {
+    // порядок важливий: вид клієнта перевіряється раніше за лояльність
+    private readonly IReadOnlyList<IDiscountRule> _rules = new IDiscountRule[]
+    {
+        new VipDiscountRule(),
+        new StaffDiscountRule(),
+        new LoyalDiscountRule(),
+    };
+
     public decimal For(decimal subtotal, TeamClient c)
     {
         decimal rate = RateFor(c);
         return Math.Min(subtotal * rate, PricingRules.MaxDiscount);
     }
 
-    private static decimal RateFor(TeamClient c) => c.Kind switch
+    private decimal RateFor(TeamClient c)
     {
-        ClientKind.Vip => PricingRules.VipRate,
-        ClientKind.Staff => PricingRules.StaffRate,
-        _ => c.IsLoyal ? PricingRules.LoyalRate : 0m,
-    };
+        foreach (var rule in _rules)
+        {
+            decimal? rate = rule.RateFor(c);
+            if (rate.HasValue) return rate.Value;
+        }
+        return 0m;
+    }
 }
