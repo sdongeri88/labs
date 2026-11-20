@@ -34,6 +34,10 @@ jobs:
       - name: Перевірка форматування
         run: dotnet format --verify-no-changes --no-restore
 
+      - name: Правила стандарту поза аналізаторами
+        shell: pwsh
+        run: ./tools/check-style.ps1
+
       - name: Складання Release з аналізаторами
         run: dotnet build -c Release --no-restore
 
