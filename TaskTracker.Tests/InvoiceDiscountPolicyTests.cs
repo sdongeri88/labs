@@ -33,4 +33,14 @@ public class InvoiceDiscountPolicyTests
 
         Assert.Equal("amount", ex.ParamName);
     }
+
+    [Fact]
+    public void DiscountFor_HugeInvoice_IsCappedAtMax()
+    {
+        var policy = new InvoiceDiscountPolicy();
+
+        decimal actual = policy.DiscountFor(5000m, true);
+
+        Assert.Equal(150m, actual);
+    }
 }
