@@ -89,30 +89,10 @@ public class LegacyBillingProcessor
     public decimal Preview(ClientKind clientKind, int clientClosed,
         List<TimeLine> lines)
     {
-        decimal s = 0m;
-        foreach (var it in lines)
-        {
-            s += it.Hours * it.Rate;
-        }
-        decimal d = 0m;
-        if (clientKind == ClientKind.Vip)
-        {
-            d = s * PricingRules.VipRate;
-            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
-        }
-        else if (clientKind == ClientKind.Staff)
-        {
-            d = s * PricingRules.StaffRate;
-            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
-        }
-        else if (clientClosed > PricingRules.LoyalOrders)
-        {
-            d = s * PricingRules.LoyalRate;
-            if (d > PricingRules.MaxDiscount) d = PricingRules.MaxDiscount;
-        }
-        decimal sh = 0m;
-        if (s - d < PricingRules.FreeShipFrom) sh = PricingRules.ShipCost;
-        return s - d + sh;
+        decimal subtotal = Subtotal(lines);
+        decimal discount = DiscountOf(subtotal, clientKind, clientClosed);
+        decimal payable = subtotal - discount;
+        return payable + ShippingOf(payable);
     }
 
     public string DescribeClient(TeamClient c)
