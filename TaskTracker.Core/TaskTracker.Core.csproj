@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <RootNamespace>TaskTracker.Core</RootNamespace>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,17 +1,31 @@
 <Project>
+  <!-- Стандарт кодування TaskTracker v2.0, розділ 6.3: спільні властивості складання. -->
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <!-- D-10: аналіз null-посилань; попередження CS86xx через TreatWarningsAsErrors стають помилками -->
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- A-02: фіксована версія мови, щоб збірка не залежала від встановленого SDK -->
     <LangVersion>12.0</LangVersion>
+    <!-- A-03: вбудовані аналізатори .NET у режимі Recommended -->
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <AnalysisLevel>8.0-recommended</AnalysisLevel>
+    <AnalysisLevel>8.0</AnalysisLevel>
+    <AnalysisMode>Recommended</AnalysisMode>
+    <!-- A-03: правила стилю IDE* з .editorconfig перевіряються під час складання -->
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- A-01: будь-яке попередження ламає збірку -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <!-- C-07: XML-документація для всіх проєктів; без неї не працює також IDE0005 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <VersionPrefix>0.8.0</VersionPrefix>
     <Authors>Решетнік Костянтин</Authors>
     <Product>TaskTracker</Product>
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- S-11: пороги метрик коду для CA1502 (цикломатична складність) -->
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)CodeMetricsConfig.txt" Link="CodeMetricsConfig.txt" />
+  </ItemGroup>
 </Project>

@@ -1,6 +1,4 @@
 using System.Globalization;
-using TaskTracker.Legacy;
-using Xunit;
 
 namespace TaskTracker.Legacy.Tests;
 

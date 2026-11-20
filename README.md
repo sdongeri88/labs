@@ -20,11 +20,19 @@
     dotnet build
     dotnet run --project TaskTracker.App
 
-## Стандарт кодування
+## Стандарт кодування (v2.0.0, самостійна робота № 1)
 
-Правила описано у файлі [CODING_STANDARD.md](CODING_STANDARD.md) і закріплено
-в `.editorconfig` та `Directory.Build.props`.
-Перевірка: `dotnet format --verify-no-changes`
+- текст стандарту з рівнями обов’язковості, глосарієм і прикладами — [CODING_STANDARD.md](CODING_STANDARD.md);
+- чекліст огляду коду — [docs/review-checklist.md](docs/review-checklist.md);
+- журнал рішень щодо стандарту — [docs/decisions.md](docs/decisions.md);
+- машинна частина — `.editorconfig`, `Directory.Build.props`, `CodeMetricsConfig.txt`,
+  `tools/check-style.ps1` (правила, яких не перевіряють аналізатори) і `tools/style-baseline.txt`.
+
+Перевірка перед комітом:
+
+    dotnet format --verify-no-changes
+    dotnet build -warnaserror
+    pwsh tools/check-style.ps1
 
 ## Автор
 
