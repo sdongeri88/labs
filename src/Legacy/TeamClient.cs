@@ -14,4 +14,13 @@ public sealed class TeamClient
 
     public bool IsLoyal =>
         ClosedTasks > PricingRules.LoyalOrders;
+
+    public string Describe()
+    {
+        string s = Name.Trim().ToUpper();
+        if (Kind == ClientKind.Vip) s += " [VIP]";
+        if (IsLoyal) s += " [ЛОЯЛЬНИЙ]";
+        s += " <" + Email.ToLower() + ">";
+        return s + " стаж " + (DateTime.Now.Year - SinceUtc.Year);
+    }
 }
