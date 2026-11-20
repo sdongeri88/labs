@@ -12,6 +12,7 @@ public class InvoiceDiscountPolicyTests
     [InlineData(1000, false, 100)]
     [InlineData(1000, true, 150)]
     [InlineData(1500, false, 150)]
+    [InlineData(1000.01, true, 150)]
     public void DiscountFor_Boundaries_MatchesTable(double amount, bool isRegular, double expected)
     {
         var policy = new InvoiceDiscountPolicy();
