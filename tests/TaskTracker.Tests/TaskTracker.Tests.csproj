@@ -29,6 +29,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\TaskTracker.Domain\TaskTracker.Domain.csproj" />
     <ProjectReference Include="..\..\src\TaskTracker.Application\TaskTracker.Application.csproj" />
+    <ProjectReference Include="..\..\src\TaskTracker.Infrastructure\TaskTracker.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
