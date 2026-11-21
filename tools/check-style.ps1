@@ -6,7 +6,10 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $maxLineLength = 100
 $maxFileLines = 500
-$scopeDirs = @('TaskTracker.Core', 'TaskTracker.App', 'TaskTracker.Tests')
+$logicDirs = @('TaskTracker.Core', 'src/TaskTracker.Domain', 'src/TaskTracker.Application')
+$scopeDirs = @('TaskTracker.Core', 'TaskTracker.App', 'TaskTracker.Tests',
+    'src/TaskTracker.Domain', 'src/TaskTracker.Application', 'src/TaskTracker.Infrastructure',
+    'src/TaskTracker.Cli', 'tests/TaskTracker.Tests')
 
 # Кожна перевірка: ідентифікатор правила, теки, шаблон порушення, пояснення.
 $checks = @(
@@ -20,9 +23,9 @@ $checks = @(
        Text = 'goto заборонено' },
     @{ Rule = 'C-04'; Dirs = $scopeDirs; Pattern = '\bTODO\b(?!\(TD-\d+, [^)]+\):)';
        Text = 'TODO без номера в реєстрі та автора: TODO(TD-12, Прізвище): ...' },
-    @{ Rule = 'D-17'; Dirs = @('TaskTracker.Core'); Pattern = 'DateTime\.(Now|UtcNow|Today)\b';
+    @{ Rule = 'D-17'; Dirs = $logicDirs; Pattern = 'DateTime\.(Now|UtcNow|Today)\b';
        Text = 'системний годинник у бібліотеці логіки, час передають ззовні (TimeProvider)' },
-    @{ Rule = 'D-14'; Dirs = @('TaskTracker.Core'); Pattern = '\b(double|float)\b';
+    @{ Rule = 'D-14'; Dirs = $logicDirs; Pattern = '\b(double|float)\b';
        Text = 'double/float у бібліотеці логіки, для сум і годин — decimal' }
 )
 
@@ -65,7 +68,7 @@ foreach ($dir in $scopeDirs) {
             }
 
             # D-15: округлення сум лише з явним MidpointRounding (виклик може тривати 3 рядки)
-            if ($text -cmatch '\b(Math|decimal)\.Round\(' -and $dir -ne 'TaskTracker.Tests') {
+            if ($text -cmatch '\b(Math|decimal)\.Round\(' -and $dir -notlike '*Tests') {
                 $call = ($lines[$i..([Math]::Min($i + 3, $lines.Count - 1))]) -join ' '
                 if ($call -cnotmatch 'MidpointRounding\.') {
                     Add-Violation $file.FullName $number 'D-15' 'Round без MidpointRounding.AwayFromZero'
