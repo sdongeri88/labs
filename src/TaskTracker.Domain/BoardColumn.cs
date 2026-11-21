@@ -4,7 +4,7 @@ namespace TaskTracker.Domain;
 public enum BoardColumn
 {
     /// <summary>Беклог: завдання записано, але не заплановано.</summary>
-    Backlog = 0,
+        Backlog  =  0,
 
     /// <summary>Заплановано на поточну ітерацію.</summary>
     Todo = 1,
