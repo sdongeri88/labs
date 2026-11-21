@@ -233,3 +233,8 @@ dotnet_diagnostic.CA1848.severity = suggestion
 # Раніше тут стояла директива #pragma, що порушує A-06.
 [TaskTracker.App/Program.cs]
 dotnet_diagnostic.CA1031.severity = none
+
+# ПРИДУШЕННЯ 4 (СР3). Верхній обробник нового консольного застосунку: те саме обґрунтування,
+# що й для ПРИДУШЕННЯ 3 — catch (Exception) журналює збій і повертає код 2.
+[src/TaskTracker.Cli/Program.cs]
+dotnet_diagnostic.CA1031.severity = none
