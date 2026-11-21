@@ -2,64 +2,70 @@
 
 ![CI](https://github.com/sdongeri88/labs/actions/workflows/ci.yml/badge.svg)
 
-Навчальний проєкт з дисципліни «Конструювання програмного забезпечення».
-Варіант № 15: облік робочих завдань команди — завдання, виконавці, проєкти
-та записи витраченого часу.
+Консольний застосунок для дошки завдань команди: створює завдання, переміщує їх колонками з
+контролем лімітів незавершеної роботи й показує завантаження виконавців.
 
-## Склад рішення
+## Автор і варіант
 
-- `TaskTracker.Core` — логіка предметної області (бібліотека класів)
-- `TaskTracker.App` — консольний застосунок (введення, виведення)
+Решетнік Костянтин Валентинович, група 472. Дисципліна «Конструювання програмного забезпечення»,
+самостійна робота № 3, варіант № 15 — TaskTracker.
 
-## Вимоги
+## Швидкий старт
 
-.NET SDK 8.0 або новіший, Git.
+Потрібен .NET SDK 8.0 і Git.
 
-## Складання та запуск
+    git clone https://github.com/sdongeri88/labs.git && cd labs
+    dotnet build TaskTracker.sln
+    dotnet run --project src/TaskTracker.Cli
 
-    dotnet build
-    dotnet run --project TaskTracker.App
+Під час першого запуску створюється `data/board.json` з умовними даними (8 вигаданих учасників,
+60 завдань), журнал пишеться в `logs/tasktracker.log`.
 
-## Стандарт кодування (v2.0.0, самостійна робота № 1)
+## Структура рішення
 
-- текст стандарту з рівнями обов’язковості, глосарієм і прикладами — [CODING_STANDARD.md](CODING_STANDARD.md);
-- чекліст огляду коду — [docs/review-checklist.md](docs/review-checklist.md);
-- журнал рішень щодо стандарту — [docs/decisions.md](docs/decisions.md);
-- машинна частина — `.editorconfig`, `Directory.Build.props`, `CodeMetricsConfig.txt`,
-  `tools/check-style.ps1` (правила, яких не перевіряють аналізатори) і `tools/style-baseline.txt`.
+- `src/TaskTracker.Domain` — завдання, колонки, таблиця переходів, ліміти WIP, профільне правило; не залежить ні від чого.
+- `src/TaskTracker.Application` — сценарії UC-01…UC-06, барикада валідації, інтерфейси сховища й годинника.
+- `src/TaskTracker.Infrastructure` — сховище JSON, умовні дані, системний годинник, журнал у файл.
+- `src/TaskTracker.Cli` — меню консолі й композиційний корінь.
+- `tests/TaskTracker.Tests` — модульні тести домену й прикладного шару (xUnit, тестові дублери).
+- `TaskTracker.Core`, `TaskTracker.App`, `TaskTracker.Tests`, `src/Legacy`, `tests/Legacy.Tests` — код
+  лабораторних робіт 1–8 (історія курсу, див. [docs/labs.md](docs/labs.md)).
 
-Перевірка перед комітом:
+Шари й правило залежностей — [docs/architecture.md](docs/architecture.md).
 
-    dotnet format --verify-no-changes
-    dotnet build -warnaserror
-    pwsh tools/check-style.ps1
+## Можливості
 
-## Автор
+Сценарії описано в [docs/spec.md](docs/spec.md), прохід із вводом і виводом — у
+[docs/user-guide.md](docs/user-guide.md).
 
-Решетнік Костянтин, група 472
+- UC-01 — створити завдання (ядро варіанта);
+- UC-02 — перемістити завдання дошкою за таблицею переходів і лімітами WIP (ядро варіанта);
+- UC-03 — призначити виконавця;
+- UC-04 — знайти завдання за виконавцем, колонкою і фрагментом назви;
+- UC-05 — звіт «завантаження виконавців»;
+- UC-06 — зберегти дошку у файл JSON (і завантажити під час запуску).
 
-## ЛР5: обробка помилок і логування
+## Тести й покриття
 
-- класифікація помилок — docs/errors.md;
-- барикада: TaskTracker.App/WorkLogParser.cs повертає Result, ядро приймає WorkLog;
-- DomainRuleException і Result — TaskTracker.Core/Errors;
-- журнал Microsoft.Extensions.Logging (Debug/Information/Warning/Error, BeginScope);
-- аудит у audit.log через FileAuditLog (IDisposable).
+    dotnet test tests/TaskTracker.Tests /p:CollectCoverage=true
 
-Запуск із демонстраційним вводом: dotnet run --project TaskTracker.App < docs/lab05/demo-input.txt
+Межу вимірювання (лише `TaskTracker.Domain` і `TaskTracker.Application`) задає властивість `Include`
+у `tests/TaskTracker.Tests/TaskTracker.Tests.csproj`. Поточне покриття бібліотеки логіки:
+рядкове 94,9 %, гілок 89,7 % (107 тестів).
 
-## ЛР8: складання та безперервна інтеграція
+Усі перевірки конвеєра локально однією командою (PowerShell):
 
-Версія збірки задається в `Directory.Build.props` (`VersionPrefix` 0.8.0); застосунок
-друкує її першим рядком. Конвеєр `.github/workflows/ci.yml` запускається на push у `main`
-і `feature/**` та на кожен pull request у `main`. Критерії якості:
+    pwsh tools/ci-local.ps1
 
-| Крок | Команда | Що ламає збірку |
-|---|---|---|
-| Формат | `dotnet format --verify-no-changes` | зайвий пробіл, відступ, порядок using |
-| Складання | `dotnet build -c Release` | будь-яке попередження CS, CA, SA, IDE, NU |
-| Тести | `dotnet test -c Release` | хоча б один червоний тест |
-| Покриття | `/p:Threshold=60 /p:ThresholdType=line` | покриття рядків нижче за 60 % |
+## Технології
 
-Секрети в репозиторії не зберігаються: локальні налаштування (`appsettings.Local.json`,
-`*.secrets.json`, `.env`) виключено в `.gitignore`, у конвеєрі — лише через GitHub Secrets.
+.NET 8, C# 12, xUnit 2.9, coverlet, Microsoft.Extensions.Logging, System.Text.Json, аналізатори
+Roslyn (AnalysisMode Recommended) і StyleCop.Analyzers, GitHub Actions.
+
+## Обмеження й відомий борг
+
+- Файл дошки читається й пишеться цілком; з ним не можна працювати з двох копій застосунку одночасно.
+- Немає облікових записів і прав: будь-хто, хто запустив застосунок, може змінити дошку.
+- Журнал у файлі не ротується й росте без обмежень (борг TD-12, `docs/tech-debt.md`).
+- Ліміти WIP задано в коді (`WipLimits.Default`), а не у файлі налаштувань.
+- Код лабораторних робіт лежить у тому самому рішенні; він не використовується застосунком СР3.
